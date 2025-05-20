@@ -55,7 +55,6 @@ from transformers.integrations.deepspeed import (
 from axolotl.common.architectures import MOE_ARCH_BLOCK
 from axolotl.integrations.base import PluginManager
 from axolotl.models.mamba import fix_mamba_attn_for_loss
-from axolotl.monkeypatch.attention.ring_attn.patch import get_ring_attn_group
 from axolotl.monkeypatch.multipack import (
     SUPPORTED_MULTIPACK_MODEL_TYPES,
     patch_for_multipack,
@@ -686,6 +685,7 @@ class ModelLoader:
                 patch_prepare_data_loader,
                 patch_prepare_device_mesh,
                 register_ring_attn,
+                get_ring_attn_group,
             )
 
             # Initialize ring attn for sequence parallelism. This must be done after

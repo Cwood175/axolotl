@@ -10,7 +10,7 @@ import pytest
 import torch
 from accelerate.state import PartialState
 
-from axolotl.monkeypatch.attention.ring_attn import (
+from axolotl.monkeypatch.attention import (
     get_ring_attn_group,
     register_ring_attn,
     set_ring_attn_group,

@@ -16,6 +16,17 @@ from axolotl.monkeypatch.attention.ring_attn.patch import (
 )
 from axolotl.utils.schemas.enums import RingAttnFunc
 
+try:
+    from axolotl.monkeypatch.attention.ring_attn.patch import (
+        get_ring_attn_group,
+        update_ring_attn_params,
+    )
+    from axolotl.utils.schemas.enums import RingAttnFunc
+except ImportError:
+    get_ring_attn_group = None
+    update_ring_attn_params = None
+    RingAttnFunc = None
+
 
 # TODO(djsaunde): implement zigzag, stripe patterns here (and elsewhere) in this
 # module. Currently, we just focus on batch ring and varlen llama3 for simplicity.
