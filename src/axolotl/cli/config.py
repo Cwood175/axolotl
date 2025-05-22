@@ -68,7 +68,6 @@ def check_remote_config(config: Union[str, Path]) -> Union[str, Path]:
             # This can happen when you forget to point to a raw GitHub link.
             LOG.warning(
                 f"Warning: The content of the file at {config} is JSON, which is technically valid YAML but might not be intended.",
-                use_environ=True,
             )
         except json.JSONDecodeError:
             # If it's not valid JSON, verify it's valid YAML
@@ -77,7 +76,6 @@ def check_remote_config(config: Union[str, Path]) -> Union[str, Path]:
             except yaml.YAMLError as err:
                 raise ValueError(
                     f"Failed to parse the content at {config} as YAML: {err}",
-                    use_environ=True,
                 ) from err
 
         # Write the content to a file if it's valid YAML (or JSON treated as YAML)
@@ -86,7 +84,6 @@ def check_remote_config(config: Union[str, Path]) -> Union[str, Path]:
             file.write(content)
         LOG.info(
             f"Using the following config obtained from {config}: \n\n{content.decode('utf-8')}\n",
-            use_environ=True,
         )
         return output_path
 
