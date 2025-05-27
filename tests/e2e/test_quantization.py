@@ -54,11 +54,11 @@ def model():
 ptq_config_test_cases = [
     # weight_dtype, activation_dtype, group_size, expected_type, expected_params
     (
-        TorchIntDType.uint4,
+        TorchIntDType.uint8,
         None,
         None,
         UIntXWeightOnlyConfig,
-        {"dtype": torch.uint4, "group_size": None},
+        {"dtype": torch.uint8, "group_size": None},
     ),
     (TorchIntDType.int8, None, 32, Int8WeightOnlyConfig, {"group_size": 32}),
     (TorchIntDType.int4, None, 4, Int4WeightOnlyConfig, {"group_size": 4}),
@@ -82,7 +82,7 @@ ptq_test_cases = [
     # weight_dtype, activation_dtype, group_size, quantize_embedding, expected_exception
     (TorchIntDType.int8, None, 8, False, None),
     (TorchIntDType.int4, None, 4, True, None),
-    (TorchIntDType.uint4, None, 8, False, None),
+    (TorchIntDType.uint8, None, 8, False, None),
     (TorchIntDType.int4, TorchIntDType.int4, 8, False, None),
     (TorchIntDType.int8, TorchIntDType.int8, 8, True, None),
     (TorchIntDType.int8, None, None, False, ValueError),
