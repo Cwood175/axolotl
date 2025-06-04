@@ -126,6 +126,10 @@ class TestAssistantDPOChatTemplateLlama3:
         assert result["chosen"] == "goodbye<|eot_id|>"
         assert result["rejected"] == "party on<|eot_id|>"
 
+    @pytest.fixture
+    def llama3_tokenizer(self):
+        return AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
+
     def test_llama3_configured(self, llama3_tokenizer, custom_assistant_dataset):
         # pylint: disable=duplicate-code
         transform_fn = default(
