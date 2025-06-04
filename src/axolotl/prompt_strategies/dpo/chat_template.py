@@ -20,16 +20,11 @@ def default(
     field_rejected = ds_cfg.get("field_rejected", "rejected")
     message_property_mappings = ds_cfg.get(
         "message_property_mappings",
-        {
-            "role": "role",
-            "content": "content",
-        },
+        {"role": "role", "content": "content"},
     )
     role_map_inv = ds_cfg.get(
         "roles",
-        {
-            "user": ["user"],
-            "assistant": ["assistant"],
+        {"user": ["user"], "assistant": ["assistant"],
             "system": ["system"],
         },
     )
