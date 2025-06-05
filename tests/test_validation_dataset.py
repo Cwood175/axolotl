@@ -79,6 +79,16 @@ class TestValidationCheckDatasetConfig(BaseValidation):
 
         _check_config()
 
+    def _validate_with_capabilities(self, cfg, capabilities=None, env_capabilities=None):
+        """Helper to validate config with optional capabilities."""
+        if capabilities is None and env_capabilities is None:
+            return validate_config(cfg)
+        return validate_config(
+            cfg,
+            capabilities=capabilities,
+            env_capabilities=env_capabilities,
+        )
+
     def test_dataset_default_chat_template_no_drop_param(self, minimal_cfg):
         cfg = DictDefault(
             minimal_cfg
@@ -120,7 +130,7 @@ class TestValidationCheckDatasetConfig(BaseValidation):
 
         _check_config()
 
-        checked_cfg = validate_config(
+        checked_cfg = self._validate_with_capabilities(
             cfg,
             capabilities={
                 "bf16": "false",
@@ -176,7 +186,7 @@ class TestValidationCheckDatasetConfig(BaseValidation):
 
         _check_config()
 
-        checked_cfg = validate_config(
+        checked_cfg = self._validate_with_capabilities(
             cfg,
             capabilities={
                 "bf16": "false",
@@ -233,7 +243,7 @@ class TestValidationCheckDatasetConfig(BaseValidation):
 
         _check_config()
 
-        checked_cfg = validate_config(
+        checked_cfg = self._validate_with_capabilities(
             cfg,
             capabilities={
                 "bf16": "false",
@@ -303,6 +313,16 @@ class TestValidationCheckDatasetConfig(BaseValidation):
 
         validate_config(cfg)
 
+    def _validate_with_capabilities(self, cfg, capabilities=None, env_capabilities=None):
+        """Helper to validate config with optional capabilities."""
+        if capabilities is None and env_capabilities is None:
+            return validate_config(cfg)
+        return validate_config(
+            cfg,
+            capabilities=capabilities,
+            env_capabilities=env_capabilities,
+        )
+
     def test_message_property_mappings(self, minimal_cfg):
         cfg = DictDefault(
             minimal_cfg
@@ -366,3 +386,13 @@ class TestOptimizerValidation(BaseValidation):
 
         with pytest.raises(ValueError, match=r".*is currently incompatible with*"):
             validate_config(cfg)
+
+    def _validate_with_capabilities(self, cfg, capabilities=None, env_capabilities=None):
+        """Helper to validate config with optional capabilities."""
+        if capabilities is None and env_capabilities is None:
+            return validate_config(cfg)
+        return validate_config(
+            cfg,
+            capabilities=capabilities,
+            env_capabilities=env_capabilities,
+        )
