@@ -55,7 +55,18 @@ from transformers.integrations.deepspeed import (
 from axolotl.common.architectures import MOE_ARCH_BLOCK
 from axolotl.integrations.base import PluginManager
 from axolotl.models.mamba import fix_mamba_attn_for_loss
-from axolotl.monkeypatch.attention.ring_attn.patch import get_ring_attn_group
+
+# The ring_attn helper may not be present in all installs; guard its import and
+# provide a safe fallback so lint and runtime will continue to work when the
+# optional module is unavailable.
+try:
+    from axolotl.monkeypatch.attention.ring_attn.patch import get_ring_attn_group
+except ImportError:
+
+    def get_ring_attn_group():
+        return None
+
+
 from axolotl.monkeypatch.multipack import (
     SUPPORTED_MULTIPACK_MODEL_TYPES,
     patch_for_multipack,
@@ -272,9 +283,9 @@ def modify_tokenizer_files(
                 for token_id, new_value in token_id_mappings.items():
                     token_id_str = str(token_id)
                     if token_id_str in config_data["added_tokens_decoder"]:
-                        config_data["added_tokens_decoder"][token_id_str][
-                            "content"
-                        ] = new_value
+                        config_data["added_tokens_decoder"][token_id_str]["content"] = (
+                            new_value
+                        )
                     else:
                         raise ValueError(
                             f"Token ID {token_id_str} not found in added_tokens_decoder"
@@ -682,25 +693,37 @@ class ModelLoader:
             patch_self_attn_lora(self.cfg)
 
         if self.cfg.sequence_parallel_degree and self.cfg.sequence_parallel_degree > 1:
-            from axolotl.monkeypatch.attention.ring_attn import (
-                patch_prepare_data_loader,
-                patch_prepare_device_mesh,
-                register_ring_attn,
-            )
+            # ring_attn may be an optional submodule; guard the import and make the
+            # relevant functions no-ops when unavailable so that lint and runtime
+            # do not fail on environments without ring_attn support.
+            try:
+                from axolotl.monkeypatch.attention.ring_attn import (
+                    patch_prepare_data_loader,
+                    patch_prepare_device_mesh,
+                    register_ring_attn,
+                )
+            except ImportError:
+                patch_prepare_data_loader = None
+                patch_prepare_device_mesh = None
+                register_ring_attn = None
 
             # Initialize ring attn for sequence parallelism. This must be done after
             # model init but before the first forward pass, since it modifies flash
             # attn to use ring comm for SP training across multiple GPUs.
-            if get_ring_attn_group() is None:  # If already set, this is already patched
+            if (
+                register_ring_attn is not None and get_ring_attn_group() is None
+            ):  # If already set, this is already patched
                 register_ring_attn(
                     sequence_parallel_degree=self.cfg.sequence_parallel_degree,
                     heads_k_stride=self.cfg.heads_k_stride,
                     ring_attn_func=self.cfg.ring_attn_func,
                 )
-                patch_prepare_data_loader()
-                patch_prepare_device_mesh(
-                    sequence_parallel_degree=self.cfg.sequence_parallel_degree
-                )
+                if patch_prepare_data_loader:
+                    patch_prepare_data_loader()
+                if patch_prepare_device_mesh:
+                    patch_prepare_device_mesh(
+                        sequence_parallel_degree=self.cfg.sequence_parallel_degree
+                    )
 
     def patch_attention(self) -> None:
         if hasattr(self.model_config, "model_type"):

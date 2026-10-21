@@ -43,7 +43,20 @@ from trl.trainer.utils import pad
 
 from axolotl.core.trainers.grpo.sampler import SequenceParallelRepeatRandomSampler
 from axolotl.core.trainers.mixins import RngLoaderMixin, SchedulerMixin
-from axolotl.monkeypatch.attention.ring_attn.patch import get_ring_attn_group
+
+# The ring_attn patch may not be available in all environments. Try to import
+# the helper, and provide a graceful fallback if it's missing so linting and
+# runtime can continue in those cases.
+try:
+    from axolotl.monkeypatch.attention.ring_attn.patch import get_ring_attn_group
+except Exception:
+
+    def get_ring_attn_group():
+        warnings.warn(
+            "axolotl.monkeypatch.attention.ring_attn.patch.get_ring_attn_group not available; falling back to None"
+        )
+        return None
+
 
 if is_peft_available():
     # pylint: disable=unused-import
@@ -305,8 +318,9 @@ class AxolotlGRPOSequenceParallelTrainer(AxolotlGRPOTrainer):
                         # Extract prompts from this SP group, accounting for num_generations duplicates
                         # We only need prompts from one rank in each SP group
                         group_prompts = all_prompts_text[
-                            group_leader_rank
-                            * len(prompts_text) : (group_leader_rank + 1)
+                            group_leader_rank * len(prompts_text) : (
+                                group_leader_rank + 1
+                            )
                             * len(prompts_text) : self.num_generations
                         ]
 

@@ -10,10 +10,24 @@ from torch.utils.hooks import RemovableHandle
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.utils import ModelOutput
 
-from axolotl.monkeypatch.attention.ring_attn.patch import (
-    get_ring_attn_group,
-    update_ring_attn_params,
-)
+# The ring_attn patch module may not be available in all environments (e.g., during some CI checks).
+# Import it conditionally and provide clear fallbacks that raise informative errors if used.
+try:
+    from axolotl.monkeypatch.attention.ring_attn.patch import (
+        get_ring_attn_group,
+        update_ring_attn_params,
+    )
+except Exception:
+
+    def _missing_ring_attn(*args, **kwargs):
+        raise ImportError(
+            "axolotl.monkeypatch.attention.ring_attn.patch is not available. "
+            "get_ring_attn_group and update_ring_attn_params cannot be imported."
+        )
+
+    get_ring_attn_group = _missing_ring_attn
+    update_ring_attn_params = _missing_ring_attn
+
 from axolotl.utils.schemas.enums import RingAttnFunc
 
 
