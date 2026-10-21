@@ -4,6 +4,15 @@ Tests for axolotl.utils.quantization
 
 import pytest
 import torch
+from axolotl.utils.callbacks.qat import QATCallback
+from axolotl.utils.quantization import (
+    convert_qat_model_for_ptq,
+    get_ptq_config,
+    prepare_model_for_qat,
+    quantize_model_for_ptq,
+)
+from axolotl.utils.schemas.enums import TorchIntDType
+from axolotl.utils.schemas.quantization import QATConfig
 from torch import nn
 from torchao.dtypes.affine_quantized_tensor import AffineQuantizedTensor
 from torchao.quantization.granularity import PerAxis, PerGroup
@@ -21,16 +30,6 @@ from torchao.quantization.quant_api import (
 )
 from transformers import AutoModelForCausalLM
 from transformers.trainer_callback import TrainerState
-
-from axolotl.utils.callbacks.qat import QATCallback
-from axolotl.utils.quantization import (
-    convert_qat_model_for_ptq,
-    get_ptq_config,
-    prepare_model_for_qat,
-    quantize_model_for_ptq,
-)
-from axolotl.utils.schemas.enums import TorchIntDType
-from axolotl.utils.schemas.quantization import QATConfig
 
 from tests.e2e.utils import require_torch_2_6_0
 
@@ -54,24 +53,24 @@ def model():
 ptq_config_test_cases = [
     # weight_dtype, activation_dtype, group_size, expected_type, expected_params
     (
-        TorchIntDType.uint4,
+        "uint4",
         None,
         None,
         UIntXWeightOnlyConfig,
         {"dtype": torch.uint4, "group_size": None},
     ),
-    (TorchIntDType.int8, None, 32, Int8WeightOnlyConfig, {"group_size": 32}),
-    (TorchIntDType.int4, None, 4, Int4WeightOnlyConfig, {"group_size": 4}),
+    ("int8", None, 32, Int8WeightOnlyConfig, {"group_size": 32}),
+    ("int4", None, 4, Int4WeightOnlyConfig, {"group_size": 4}),
     (
-        TorchIntDType.int4,
-        TorchIntDType.int4,
+        "int4",
+        "int4",
         None,
         Int4DynamicActivationInt4WeightConfig,
         {},
     ),
     (
-        TorchIntDType.int8,
-        TorchIntDType.int8,
+        "int8",
+        "int8",
         None,
         Int8DynamicActivationInt8WeightConfig,
         {},
@@ -80,13 +79,13 @@ ptq_config_test_cases = [
 
 ptq_test_cases = [
     # weight_dtype, activation_dtype, group_size, quantize_embedding, expected_exception
-    (TorchIntDType.int8, None, 8, False, None),
-    (TorchIntDType.int4, None, 4, True, None),
-    (TorchIntDType.uint4, None, 8, False, None),
-    (TorchIntDType.int4, TorchIntDType.int4, 8, False, None),
-    (TorchIntDType.int8, TorchIntDType.int8, 8, True, None),
-    (TorchIntDType.int8, None, None, False, ValueError),
-    (TorchIntDType.int4, None, None, False, ValueError),
+    ("int8", None, 8, False, None),
+    ("int4", None, 4, True, None),
+    ("uint4", None, 8, False, None),
+    ("int4", "int4", 8, False, None),
+    ("int8", "int8", 8, True, None),
+    ("int8", None, None, False, ValueError),
+    ("int4", None, None, False, ValueError),
 ]
 
 
@@ -217,9 +216,7 @@ class TestQuantizationCallback:
         )
 
     @require_torch_2_6_0
-    def test_qat_callback_fake_quant_after_n_steps(
-        self, model, trainer_state
-    ):  # pylint: disable=redefined-outer-name
+    def test_qat_callback_fake_quant_after_n_steps(self, model, trainer_state):  # pylint: disable=redefined-outer-name
         cfg = QATConfig(
             weight_dtype="int8",
             activation_dtype="int8",
@@ -265,9 +262,7 @@ class TestQuantizationCallback:
         assert model.lm_head.weight_fake_quantizer.enabled
 
     @require_torch_2_6_0
-    def test_qat_callback_fake_quant_after_n_steps_is_none(
-        self, model, trainer_state
-    ):  # pylint: disable=redefined-outer-name
+    def test_qat_callback_fake_quant_after_n_steps_is_none(self, model, trainer_state):  # pylint: disable=redefined-outer-name
         cfg = QATConfig(
             weight_dtype="int8",
             activation_dtype="int8",
@@ -309,9 +304,7 @@ class TestConvertQATModelForPTQ:
     """
 
     @require_torch_2_6_0
-    def test_convert_qat_model_for_ptq(
-        self, model
-    ):  # pylint: disable=redefined-outer-name
+    def test_convert_qat_model_for_ptq(self, model):  # pylint: disable=redefined-outer-name
         config = QATConfig(
             weight_dtype="int8",
             activation_dtype="int8",

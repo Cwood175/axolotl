@@ -55,7 +55,7 @@ def get_ptq_config(
                 group_size=group_size,
                 set_inductor_config=False,
             )
-        if weight_dtype == TorchIntDType.int8:
+        if weight_dtype.value == TorchIntDType.int8.value:
             if group_size is None:
                 raise ValueError(
                     "group_size must be specified for int8 weight only quantization"
@@ -63,7 +63,7 @@ def get_ptq_config(
             return Int8WeightOnlyConfig(
                 group_size=group_size,
             )
-        if weight_dtype == TorchIntDType.int4:
+        if weight_dtype.value == TorchIntDType.int4.value:
             if group_size is None:
                 raise ValueError(
                     "group_size must be specified for int4 weight only quantization"
@@ -71,11 +71,23 @@ def get_ptq_config(
             return Int4WeightOnlyConfig(
                 group_size=group_size,
             )
-    if activation_dtype == TorchIntDType.int4 and weight_dtype == TorchIntDType.int4:
+    if (
+        activation_dtype is not None
+        and activation_dtype.value == TorchIntDType.int4.value
+        and weight_dtype.value == TorchIntDType.int4.value
+    ):
         return Int4DynamicActivationInt4WeightConfig()
-    if activation_dtype == TorchIntDType.int8 and weight_dtype == TorchIntDType.int8:
+    if (
+        activation_dtype is not None
+        and activation_dtype.value == TorchIntDType.int8.value
+        and weight_dtype.value == TorchIntDType.int8.value
+    ):
         return Int8DynamicActivationInt8WeightConfig()
-    if activation_dtype == TorchIntDType.int8 and weight_dtype == TorchIntDType.int4:
+    if (
+        activation_dtype is not None
+        and activation_dtype.value == TorchIntDType.int8.value
+        and weight_dtype.value == TorchIntDType.int4.value
+    ):
         return Int8DynamicActivationInt4WeightConfig()
     raise ValueError(
         f"Invalid activation/weight dtype combination: {activation_dtype}/{weight_dtype}"

@@ -12,6 +12,18 @@ if version.parse(torch_version) < version.parse("2.6.0"):
     class TorchIntDType(Enum):
         """Dummy class for import guarding"""
 
+        # Provide stub members so type-checkers recognize attributes on older torch.
+        # Values are simple placeholders and will not be used at runtime for supported torch.
+        uint1 = 0  # pylint: disable=invalid-name
+        uint2 = 1  # pylint: disable=invalid-name
+        uint3 = 2  # pylint: disable=invalid-name
+        uint4 = 3  # pylint: disable=invalid-name
+        uint5 = 4  # pylint: disable=invalid-name
+        uint6 = 5  # pylint: disable=invalid-name
+        uint7 = 6  # pylint: disable=invalid-name
+        int4 = 7  # pylint: disable=invalid-name
+        int8 = 8  # pylint: disable=invalid-name
+
 else:
 
     class TorchIntDType(Enum):
